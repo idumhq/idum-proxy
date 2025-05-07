@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Simple example",
+  "endpoints": [
+    {
+      "prefix": "/",
+      "match": "**/*",
+      "backends": {
+        "https": {
+          "url": "https://jsonplaceholder.typicode.com/posts"
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,463 @@
+{
+  "version": "1.0",
+  "name": "Idum Proxy",
+  "timeout": "10",
+  "ssl": true,
+  "middlewares": {
+    "security": {
+      "ip_filter": {
+        "enabled": true,
+        "blacklist": [
+          "*.0.0.2"
+        ]
+      },
+      "bot_filter": {
+        "enabled": true,
+        "blacklist": [
+          {
+            "name": "googlebot",
+            "user-agent": "crawl-***-***-***-***.googlebot.com"
+          }
+        ],
+        "whitelist": []
+      }
+    },
+    "performance": {
+      "resource_filter": {
+        "enabled": true,
+        "skip_paths": [
+          "favicon.ico",
+          ".well-known/**",
+          "robots.txt"
+        ]
+      },
+      "cache": {
+        "file": {
+          "enabled": true,
+          "path": ".cache/pip",
+          "ttl": 86400,
+          "include_patterns": [
+            "/pip-proxy/**",
+            "/pip-packages/**"
+          ],
+          "exclude_patterns": [
+            "/health",
+            "/cache/**"
+          ],
+          "max_size_mb": 1024,
+          "max_entries": 10000,
+          "cleanup_interval": "1h"
+        },
+        "memory": {
+          "enabled": true,
+          "max_items": 1000,
+          "ttl": 3600,
+          "include_patterns": [
+            "/pip-proxy/**"
+          ],
+          "exclude_patterns": [
+            "/health",
+            "/cache/**"
+          ],
+          "max_item_size": 1048576
+        }
+      },
+      "compression": {
+        "enabled": true,
+        "compress_level": 9,
+        "min_size": 500,
+        "types": [
+          "text/html",
+          "text/css",
+          "text/javascript",
+          "application/json",
+          "application/javascript",
+          "text/plain"
+        ]
+      }
+    }
+  },
+  "endpoints": [
+    {
+      "prefix": "/",
+      "match": "**/*",
+      "weight": 0,
+      "backends": [
+        {
+          "https": {
+            "id": "primary",
+            "url": "https://sandbox.api.service.nhs.uk/hello-world/hello/world$",
+            "weight": 0,
+            "ssl": true
+          }
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        }
+      }
+    },
+    {
+      "identifier": "echo",
+      "prefix": "/echo",
+      "match": "/echo/**",
+      "backends": {
+        "echo": {
+          "enabled": true,
+          "add_headers": {
+            "X-Echo-Service": "true",
+            "X-Request-Time": "${timestamp}"
+          },
+          "response_delay_ms": 100
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "prefix": "/redirect",
+      "match": "/redirect/**",
+      "backends": {
+        "redirect": {
+          "enabled": true,
+          "location": "https://api.github.com",
+          "preserve_path": true
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "mock",
+      "prefix": "/mock",
+      "match": "/mock/**",
+      "backends": {
+        "mock": {
+          "enabled": true,
+          "path_templates": {
+            "/users": {
+              "status_code": 200,
+              "content_type": "application/json",
+              "body": {
+                "users": [
+                  {
+                    "id": 1,
+                    "name": "John Doe"
+                  },
+                  {
+                    "id": 2,
+                    "name": "Jane Smith"
+                  }
+                ]
+              }
+            },
+            "/users/{id}": {
+              "status_code": 200,
+              "content_type": "application/json",
+              "body": {
+                "id": "${path.id}",
+                "name": "User ${path.id}",
+                "email": "user${path.id}@example.com"
+              }
+            }
+          },
+          "default_response": {
+            "status_code": 404,
+            "body": {
+              "error": "Resource not found"
+            }
+          }
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "pypi-remote-official",
+      "prefix": "/pypi-remote-official",
+      "match": "/pypi-remote-official/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "pypi-primary",
+              "url": "https://pypi.org/simple",
+              "weight": 10,
+              "ssl": true
+            },
+            {
+              "id": "pypi-mirror",
+              "url": "https://repo.ito.gov.ir/python",
+              "weight": 5,
+              "ssl": true
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        },
+        "cache": {
+          "file": {
+            "enabled": true,
+            "path": ".cache/pypi/pypi-remote-official",
+            "ttl": 43200,
+            "max_size_mb": 256,
+            "max_entries": 2500
+          }
+        }
+      },
+      "transformers": {
+        "response": {
+          "enabled": true,
+          "textReplacements": [
+            {
+              "oldvalue": "https://pypi.org/simple",
+              "newvalue": "http://0.0.0.0:8080/pypi-remote-official"
+            },
+            {
+              "oldvalue": "/simple",
+              "newvalue": "/pypi-remote-official"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "pypi-demo-local",
+      "prefix": "/pypi-demo-local",
+      "match": "/pypi-demo-local/**",
+      "upstream": {
+        "file": {
+          "enabled": true,
+          "path": ".files/pypi/pypi-demo-local"
+        }
+      }
+    },
+    {
+      "prefix": "/pypi-virtual-all",
+      "match": "/pypi-virtual-all/**",
+      "upstream": {
+        "virtual": {
+          "sources": [
+            "pypi-demo-local",
+            "pypi-remote-official"
+          ],
+          "strategy": "first-match"
+        }
+      }
+    },
+    {
+      "identifier": "npm-remote-npmjs",
+      "prefix": "/npm-remote-npmjs",
+      "match": "/npm-remote-npmjs/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "npmjs",
+              "url": "https://registry.npmjs.org",
+              "ssl": true
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        },
+        "cache": {
+          "file": {
+            "enabled": true,
+            "path": ".cache/npm/npm-remote-npmjs",
+            "ttl": 43200,
+            "max_size_mb": 256,
+            "max_entries": 2500
+          }
+        }
+      },
+      "transformers": {
+        "response": {
+          "enabled": true,
+          "textReplacements": [
+            {
+              "oldvalue": "https://registry.npmjs.org",
+              "newvalue": "http://0.0.0.0:8080/npm-remote-npmjs"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "maven-remote-central",
+      "prefix": "/maven-remote-central",
+      "match": "/maven-remote-central/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "maven-central",
+              "url": "https://repo1.maven.org/maven2",
+              "ssl": true
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        },
+        "cache": {
+          "file": {
+            "enabled": true,
+            "path": ".cache/maven/maven-remote-central",
+            "ttl": 43200,
+            "max_size_mb": 256,
+            "max_entries": 2500
+          }
+        }
+      },
+      "transformers": {
+        "response": {
+          "enabled": true,
+          "textReplacements": [
+            {
+              "oldvalue": "href=\"",
+              "newvalue": "href=\"${path}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "github-api",
+      "prefix": "/github-api",
+      "match": "/github-api/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "github-api",
+              "url": "https://api.github.com",
+              "ssl": true
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        }
+      },
+      "transformers": {
+        "response": {
+          "enabled": true,
+          "textReplacements": [
+            {
+              "oldvalue": "https://api.github.com",
+              "newvalue": "http://0.0.0.0:8080/github-api"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "alpine-remote-official",
+      "prefix": "/alpine-remote-official",
+      "match": "/alpine-remote-official/**",
+      "backends": [
+        {
+          "https": [
+            {
+              "id": "alpine-remote",
+              "url": "https://dl-cdn.alpinelinux.org/alpine",
+              "ssl": true
+            }
+          ]
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 60
+        }
+      },
+      "transformers": {
+        "response": {
+          "enabled": true,
+          "textReplacements": [
+            {
+              "oldvalue": "https://dl-cdn.alpinelinux.org/alpine",
+              "newvalue": "http://0.0.0.0:8080/alpine-remote-official"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "tcpdump",
+      "prefix": "/tcpdump",
+      "match": "/tcpdump/**",
+      "backends": {
+        "command": {
+          "id": "tcp-command",
+          "command": "tcpdump -i en0 src 192.168.0.153 and port 443"
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "identifier": "scheduler",
+      "prefix": "/scheduler",
+      "match": "/scheduler/**",
+      "backends": {
+        "scheduler": {
+          "job_history": {
+            "storage_type": "file",
+            "path": ".data/scheduler/job_history",
+            "retention_hours": 168
+          },
+          "cron_jobs": {
+            "cache_cleanup": {
+              "schedule": "0 2 * * *",
+              "command": "find .cache -type f -mtime +7 -delete",
+              "description": "Daily cache cleanup at 2 AM"
+            },
+            "log_rotation": {
+              "schedule": "0 0 * * 0",
+              "command": "logrotate /etc/logrotate.d/idum-proxy",
+              "description": "Weekly log rotation"
+            }
+          },
+          "job_history_retention": 168
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true,
+          "timeout_seconds": 120
+        }
+      }
+    }
+  ]
+}
