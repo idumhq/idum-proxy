@@ -1,0 +1,172 @@
+site_name: Idum Proxy
+site_url: https://proxy.idum.app
+site_author: Sylvain Mouquet
+site_description: >-
+  ⚡ Idum Proxy is High-performance Python proxy server with authentication, load balancing, caching, and multi-protocol support
+
+# Repository
+repo_name: idumhq/idum-proxy
+repo_url: https://github.com/idumhq/idum-proxy
+
+# Copyright
+copyright: Copyright &copy; 2025 - Idum Proxy
+
+# Configuration
+theme:
+  name: material
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    # - content.code.select
+    # - content.footnote.tooltips
+    # - content.tabs.link
+    - content.tooltips
+    # - header.autohide
+    # - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    # - navigation.instant
+    # - navigation.instant.prefetch
+    # - navigation.instant.progress
+    # - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    # - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: black
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: assets/favicon.png
+  icon:
+    logo: logo
+
+# Plugins
+plugins:
+  - blog
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+
+# Additional configuration
+extra:
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/idumhq/idum-proxy
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/idumhq/idum-proxy
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/idum-proxy
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: idumhq
+      repo: idum-proxy
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/mkdocs.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+not_in_nav: |
+  /tutorials/**/*.md
+
+# Page tree
+nav:
+  - Getting started: index.md
+  - API Documentation:
+    - Protocols: features/protocols.md
+    - Middlewares:
+      - features/middlewares/index.md
+      - Security:
+            - Bot filter: features/middlewares/security/bot-filter.md
+            - IP filter: features/middlewares/security/ip-filter.md
+      - Performance:
+          - Caching:
+            - In file: features/middlewares/performance/caching/in-file.md
+            - In memory: features/middlewares/performance/caching/in-memory.md
+          - Circuit Breaker: features/middlewares/performance/circuit-breaker.md
+          - Compression: features/middlewares/performance/compression.md
+          - Resource Filter: features/middlewares/performance/resource-filter.md
+      - Transformer:
+          - Request: features/middlewares/transformer/request-transform.md
+          - Response: features/middlewares/transformer/response-transform.md
+  - Examples:
+    - Simple: examples/simple.md
+  - Proxy AI:
+    - OpenAI: ai/open_ai.md
+    - MistralAI: ai/mistral_ai.md
