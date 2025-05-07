@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Simple example",
+  "endpoints": [
+    {
+      "prefix": "/",
+      "match": "**/*",
+      "backends": {
+        "https": {
+          "url": "http://www.example.com"
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}
