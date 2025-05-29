@@ -83,9 +83,10 @@ if __name__ == "__main__":
     idum_proxy.serve(host='0.0.0.0', port=8091)
 ```
 
-📋 Configuration Example `'proxy.json'`
+📋 Configuration Example
 
 ```json
+
 {
   "version": "1.0",
   "name": "Simple example",
@@ -116,7 +117,7 @@ if __name__ == "__main__":
 
 ```bash
 docker build -t idum-proxy -f dockerfiles/idum_proxy.Dockerfile .
-docker run -p 8080:8080 idum-proxy
+docker run  -p 8080:8080 idum-proxy
 ```
 
 ## 📄 License
