@@ -122,4 +122,4 @@ docker run  -p 8080:8080 idum-proxy
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+[Business Source License 1.1](LICENSE)

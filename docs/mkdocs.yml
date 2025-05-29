@@ -170,3 +170,9 @@ nav:
   - Proxy AI:
     - OpenAI: ai/open_ai.md
     - MistralAI: ai/mistral_ai.md
+  - Registry:
+    - Docker: registry/docker.md
+    - Maven: registry/maven.md
+    - NPM: registry/npm.md
+    - NUGET: registry/nuget.md
+    - PyPi: registry/pypi.md
