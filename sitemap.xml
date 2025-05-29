@@ -92,4 +92,24 @@
          <loc>https://proxy.idum.app/get-started/concept/</loc>
          <lastmod>2025-05-29</lastmod>
     </url>
+    <url>
+         <loc>https://proxy.idum.app/registry/docker/</loc>
+         <lastmod>2025-05-29</lastmod>
+    </url>
+    <url>
+         <loc>https://proxy.idum.app/registry/maven/</loc>
+         <lastmod>2025-05-29</lastmod>
+    </url>
+    <url>
+         <loc>https://proxy.idum.app/registry/npm/</loc>
+         <lastmod>2025-05-29</lastmod>
+    </url>
+    <url>
+         <loc>https://proxy.idum.app/registry/nuget/</loc>
+         <lastmod>2025-05-29</lastmod>
+    </url>
+    <url>
+         <loc>https://proxy.idum.app/registry/pypi/</loc>
+         <lastmod>2025-05-29</lastmod>
+    </url>
 </urlset>
