@@ -7,6 +7,7 @@ site_description: >-
 # Repository
 repo_name: idumhq/idum-proxy
 repo_url: https://github.com/idumhq/idum-proxy
+edit_uri: edit/main/docs/docs/
 
 # Copyright
 copyright: Copyright &copy; 2025 - Idum Proxy
@@ -65,8 +66,7 @@ theme:
     text: Roboto
     code: Roboto Mono
   favicon: assets/favicon.png
-  icon:
-    logo: logo
+  logo: assets/logo.png
 
 # Plugins
 plugins:
@@ -167,12 +167,9 @@ nav:
           - Response: features/middlewares/transformer/response-transform.md
   - Examples:
     - Simple: examples/simple.md
-  - Proxy AI:
-    - OpenAI: ai/open_ai.md
-    - MistralAI: ai/mistral_ai.md
-  - Registry:
-    - Docker: registry/docker.md
-    - Maven: registry/maven.md
-    - NPM: registry/npm.md
-    - NUGET: registry/nuget.md
-    - PyPi: registry/pypi.md
+  - Integrations:
+      - APM:
+          - Datadog: integrations/apm/datadog.md
+          - Logfire: integrations/apm/logfire.md
+  - Proxy AI: https://idumhq.github.io/idum-ai/
+  - Registry: https://idumhq.github.io/idum-registry/

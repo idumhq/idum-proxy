@@ -1,8 +1,6 @@
-import json
 import pytest
 from http import HTTPStatus, HTTPMethod
 from pydantic import ValidationError
-from dataclasses import FrozenInstanceError
 
 from idum_proxy.config.models import (
     RetryConfig,
@@ -17,45 +15,23 @@ from idum_proxy.config.models import (
     LoadBalancing,
     ProtocolHeaders,
     HttpProtocolConfig,
-    Protocols,
     CircuitBreaker,
     FileCacheConfig,
     MemoryCacheConfig,
     CacheMiddleware,
-    ResourceFilterMiddleware,
-    CompressionMiddleware,
-    CircuitBreakerMiddleware,
-    ProxyConfig,
-    VirtualSourceConfig,
-    FileBackendConfig,
     RedirectConfig,
     MockResponseTemplate,
-    MockConfig,
-    FunctionConfig,
-    WebSocketConfig,
-    GraphQLConfig,
-    EchoConfig,
-    ServiceMeshConfig,
-    JobHistory,
     CronJob,
-    SchedulerConfig,
     Backends,
     UpstreamConfig,
     PerformanceMiddleware,
     Bot,
     BotFilterMiddleware,
-    IpFilterMiddleware,
     SecurityMiddleware,
     Middleware,
     TextReplacements,
     ResponseTransformer,
     Transformers,
-    Logging,
-    Auth,
-    CORS,
-    PrometheusConfig,
-    Monitoring,
-    Failover,
     Endpoint,
     Config,
 )
@@ -114,7 +90,7 @@ class TestHttpsBackend:
             retries=retry,
             rate_limiting=rate_limit,
             headers={"Authorization": "Bearer token"},
-            methods=[HTTPMethod.GET, HTTPMethod.POST]
+            methods=[HTTPMethod.GET, HTTPMethod.POST],
         )
 
         assert backend.url == "https://api.example.com"
@@ -155,7 +131,7 @@ class TestHealthCheck:
             interval_seconds=30,
             timeout_seconds=5,
             healthy_threshold=2,
-            unhealthy_threshold=3
+            unhealthy_threshold=3,
         )
         assert health_check.path == "/health"
         assert health_check.interval_seconds == 30
@@ -166,11 +142,7 @@ class TestHealthCheck:
 
 class TestStickySessions:
     def test_sticky_sessions_creation(self):
-        sticky = StickySessions(
-            enabled=True,
-            cookie_name="session_id",
-            ttl_hours=24
-        )
+        sticky = StickySessions(enabled=True, cookie_name="session_id", ttl_hours=24)
         assert sticky.enabled is True
         assert sticky.cookie_name == "session_id"
         assert sticky.ttl_hours == 24
@@ -183,18 +155,12 @@ class TestLoadBalancing:
             interval_seconds=30,
             timeout_seconds=5,
             healthy_threshold=2,
-            unhealthy_threshold=3
+            unhealthy_threshold=3,
         )
-        sticky = StickySessions(
-            enabled=True,
-            cookie_name="session_id",
-            ttl_hours=24
-        )
+        sticky = StickySessions(enabled=True, cookie_name="session_id", ttl_hours=24)
 
         lb = LoadBalancing(
-            algorithm="round_robin",
-            health_check=health_check,
-            sticky_sessions=sticky
+            algorithm="round_robin", health_check=health_check, sticky_sessions=sticky
         )
 
         assert lb.algorithm == "round_robin"
@@ -225,7 +191,7 @@ class TestHttpProtocolConfig:
     def test_http_protocol_config_with_params(self):
         config = HttpProtocolConfig(
             methods=[HTTPMethod.GET, HTTPMethod.POST],
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         assert config.methods == [HTTPMethod.GET, HTTPMethod.POST]
         assert config.headers == {"Content-Type": "application/json"}
@@ -234,10 +200,7 @@ class TestHttpProtocolConfig:
 class TestCircuitBreaker:
     def test_circuit_breaker_creation(self):
         cb = CircuitBreaker(
-            threshold=0.5,
-            window_seconds=60,
-            min_samples=10,
-            reset_timeout_seconds=30
+            threshold=0.5, window_seconds=60, min_samples=10, reset_timeout_seconds=30
         )
         assert cb.threshold == 0.5
         assert cb.window_seconds == 60
@@ -248,10 +211,7 @@ class TestCircuitBreaker:
 class TestFileCacheConfig:
     def test_file_cache_config_defaults(self):
         cache = FileCacheConfig(
-            path="/tmp/cache",
-            ttl=3600,
-            max_size_mb=100,
-            max_entries=1000
+            path="/tmp/cache", ttl=3600, max_size_mb=100, max_entries=1000
         )
         assert cache.path == "/tmp/cache"
         assert cache.ttl == 3600
@@ -269,7 +229,7 @@ class TestFileCacheConfig:
             max_size_mb=100,
             max_entries=1000,
             include_patterns=["*.js", "*.css"],
-            exclude_patterns=["*.tmp"]
+            exclude_patterns=["*.tmp"],
         )
         assert cache.include_patterns == ["*.js", "*.css"]
         assert cache.exclude_patterns == ["*.tmp"]
@@ -278,10 +238,7 @@ class TestFileCacheConfig:
 class TestMemoryCacheConfig:
     def test_memory_cache_config_creation(self):
         cache = MemoryCacheConfig(
-            max_items=1000,
-            ttl=3600,
-            include_patterns=["*.json"],
-            max_item_size=1024
+            max_items=1000, ttl=3600, include_patterns=["*.json"], max_item_size=1024
         )
         assert cache.max_items == 1000
         assert cache.ttl == 3600
@@ -304,7 +261,7 @@ class TestRedirectConfig:
             location="https://example.com",
             enabled=False,
             status_code=HTTPStatus.MOVED_PERMANENTLY,
-            preserve_path=False
+            preserve_path=False,
         )
         assert redirect.location == "https://example.com"
         assert redirect.enabled is False
@@ -327,7 +284,7 @@ class TestMockResponseTemplate:
             headers={"Content-Type": "text/plain"},
             body="Not found",
             content_type="text/plain",
-            delay_ms=500
+            delay_ms=500,
         )
         assert template.status_code == 404
         assert template.headers == {"Content-Type": "text/plain"}
@@ -339,9 +296,7 @@ class TestMockResponseTemplate:
 class TestCronJob:
     def test_valid_cron_schedule(self):
         job = CronJob(
-            schedule="0 9 * * 1",
-            command="backup.sh",
-            description="Daily backup"
+            schedule="0 9 * * 1", command="backup.sh", description="Daily backup"
         )
         assert job.schedule == "0 9 * * 1"
         assert job.command == "backup.sh"
@@ -349,11 +304,7 @@ class TestCronJob:
 
     def test_invalid_cron_schedule(self):
         with pytest.raises(ValidationError) as exc_info:
-            CronJob(
-                schedule="invalid",
-                command="backup.sh",
-                description="Daily backup"
-            )
+            CronJob(schedule="invalid", command="backup.sh", description="Daily backup")
         assert "Invalid cron schedule format" in str(exc_info.value)
 
     def test_cron_schedule_edge_cases(self):
@@ -365,11 +316,7 @@ class TestCronJob:
         ]
 
         for schedule in valid_schedules:
-            job = CronJob(
-                schedule=schedule,
-                command="test.sh",
-                description="Test job"
-            )
+            job = CronJob(schedule=schedule, command="test.sh", description="Test job")
             assert job.schedule == schedule
 
     def test_cron_schedule_invalid_cases(self):
@@ -385,11 +332,7 @@ class TestCronJob:
 
         for schedule in invalid_schedules:
             with pytest.raises(ValidationError):
-                CronJob(
-                    schedule=schedule,
-                    command="test.sh",
-                    description="Test job"
-                )
+                CronJob(schedule=schedule, command="test.sh", description="Test job")
 
 
 class TestBot:
@@ -416,9 +359,7 @@ class TestBotFilterMiddleware:
         blacklist = [Bot(name="BadBot", user_agent="BadBot/1.0")]
         whitelist = [Bot(name="GoodBot", user_agent="GoodBot/1.0")]
         middleware = BotFilterMiddleware(
-            blacklist=blacklist,
-            whitelist=whitelist,
-            enabled=False
+            blacklist=blacklist, whitelist=whitelist, enabled=False
         )
         assert middleware.blacklist == blacklist
         assert middleware.whitelist == whitelist
@@ -428,11 +369,7 @@ class TestBotFilterMiddleware:
 class TestEndpoint:
     def test_endpoint_creation(self):
         upstream = UpstreamConfig()
-        endpoint = Endpoint(
-            prefix="/api",
-            match="/*",
-            upstream=upstream
-        )
+        endpoint = Endpoint(prefix="/api", match="/*", upstream=upstream)
         assert endpoint.prefix == "/api"
         assert endpoint.match == "/*"
         assert endpoint.upstream == upstream
@@ -447,9 +384,7 @@ class TestEndpoint:
         transformers = Transformers(
             response=ResponseTransformer(
                 enabled=True,
-                textReplacements=[
-                    TextReplacements(oldvalue="old", newvalue="new")
-                ]
+                textReplacements=[TextReplacements(oldvalue="old", newvalue="new")],
             )
         )
 
@@ -461,7 +396,7 @@ class TestEndpoint:
             weight=200,
             backends=backends,
             transformers=transformers,
-            timeout=60.0
+            timeout=60.0,
         )
 
         assert endpoint.prefix == "/api/v1"
@@ -476,17 +411,9 @@ class TestEndpoint:
 
 class TestConfig:
     def test_config_creation(self):
-        endpoint = Endpoint(
-            prefix="/api",
-            match="/*",
-            upstream=UpstreamConfig()
-        )
+        endpoint = Endpoint(prefix="/api", match="/*", upstream=UpstreamConfig())
 
-        config = Config(
-            name="test-proxy",
-            version="1.0.0",
-            endpoints=[endpoint]
-        )
+        config = Config(name="test-proxy", version="1.0.0", endpoints=[endpoint])
 
         assert config.name == "test-proxy"
         assert config.version == "1.0.0"
@@ -496,15 +423,10 @@ class TestConfig:
         assert config.middlewares is None
 
     def test_config_with_all_params(self):
-        endpoint = Endpoint(
-            prefix="/api",
-            match="/*",
-            upstream=UpstreamConfig()
-        )
+        endpoint = Endpoint(prefix="/api", match="/*", upstream=UpstreamConfig())
 
         middleware = Middleware(
-            performance=PerformanceMiddleware(),
-            security=SecurityMiddleware()
+            performance=PerformanceMiddleware(), security=SecurityMiddleware()
         )
 
         config = Config(
@@ -513,7 +435,7 @@ class TestConfig:
             endpoints=[endpoint],
             timeout="30s",
             ssl=True,
-            middlewares=middleware
+            middlewares=middleware,
         )
 
         assert config.name == "full-proxy"
@@ -531,13 +453,7 @@ class TestConfig:
         json_data = {
             "name": "json-proxy",
             "version": "1.0.0",
-            "endpoints": [
-                {
-                    "prefix": "/api",
-                    "match": "/*",
-                    "upstream": {}
-                }
-            ]
+            "endpoints": [{"prefix": "/api", "match": "/*", "upstream": {}}],
         }
 
         config = Config(**json_data)
@@ -562,7 +478,7 @@ class TestDataclassSlots:
         retry = RetryConfig(count=3, delay_ms=1000, status_codes=[500])
 
         # Slots should not have __dict__
-        assert not hasattr(retry, '__dict__')
+        assert not hasattr(retry, "__dict__")
 
 
 class TestComplexIntegration:
@@ -586,7 +502,7 @@ class TestComplexIntegration:
             weight=10,
             retries=retry,
             rate_limiting=rate_limit,
-            headers={"Authorization": "Bearer token"}
+            headers={"Authorization": "Bearer token"},
         )
 
         # Create backends
@@ -596,11 +512,8 @@ class TestComplexIntegration:
         cache_middleware = CacheMiddleware(
             enabled=True,
             file=FileCacheConfig(
-                path="/tmp/cache",
-                ttl=3600,
-                max_size_mb=100,
-                max_entries=1000
-            )
+                path="/tmp/cache", ttl=3600, max_size_mb=100, max_entries=1000
+            ),
         )
 
         performance_middleware = PerformanceMiddleware(cache=cache_middleware)
@@ -612,7 +525,7 @@ class TestComplexIntegration:
             match="/*",
             upstream=UpstreamConfig(),
             backends=backends,
-            weight=100
+            weight=100,
         )
 
         # Create full config
@@ -620,7 +533,7 @@ class TestComplexIntegration:
             name="integration-test",
             version="1.0.0",
             endpoints=[endpoint],
-            middlewares=middleware
+            middlewares=middleware,
         )
 
         # Verify the complete structure

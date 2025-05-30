@@ -13,7 +13,6 @@ async def test_keepalive():
     # Create connector with explicit keepalive settings
     sock_options = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
 
-
     # Set platform-specific options
     system = platform.system()
     if system == "Linux":

@@ -3,6 +3,9 @@
   "name": "Idum Proxy",
   "timeout": "10",
   "ssl": true,
+  "server": {
+    "type": "uvicorn"
+  },
   "middlewares": {
     "security": {
       "ip_filter": {

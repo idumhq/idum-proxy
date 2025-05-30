@@ -18,9 +18,7 @@ async def test_routing_selector_valid():
 
     for path in paths:
         assert (
-            idum_proxy.routing_selector.find_endpoint(path)
-            .backends[0]
-            .https[0].url
+            idum_proxy.routing_selector.find_endpoint(path).backends[0].https[0].url
             == "https://api.github.com"
         )
 
@@ -37,8 +35,6 @@ async def test_routing_selector_invalid():
             is not None
         )
         assert (
-            idum_proxy.routing_selector.find_endpoint(path)
-            .backends[0]
-            .https.url
+            idum_proxy.routing_selector.find_endpoint(path).backends[0].https.url
             == "https://sandbox.api.service.nhs.uk/hello-world/hello/world$"
         )

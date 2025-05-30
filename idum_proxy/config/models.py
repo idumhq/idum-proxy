@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from http import HTTPStatus, HTTPMethod
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -429,10 +429,17 @@ class Endpoint:
     timeout: float = 30
 
 
+@dataclass(slots=True)
+class ServerConfig:
+    type: Literal["uvicorn", "gunicorn", "local"] = "gunicorn"
+    workers: int = Field(default=2, ge=1)
+
+
 # Keep Config as BaseModel for easy JSON parsing
 class Config(BaseModel):
     name: str
     version: str
+    server: ServerConfig = Field(default_factory=ServerConfig)
     endpoints: list[Endpoint]
     timeout: str | None = None
     ssl: bool | None = None
