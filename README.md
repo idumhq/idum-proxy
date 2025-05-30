@@ -1,8 +1,6 @@
 # Idum-Proxy
 
-Idum-Proxy is the easiest and quickest way to deploy a web proxy. 
-Free and open-source.
-
+Idum-Proxy is the easiest and quickest way to deploy a web proxy.
 
 <!-- Project Status Badges -->
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
