@@ -2,114 +2,106 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://proxy.idum.app/</loc>
-         <lastmod>2025-05-29</lastmod>
-    </url>
-    <url>
-         <loc>https://proxy.idum.app/ai/mistral_ai/</loc>
-         <lastmod>2025-05-29</lastmod>
-    </url>
-    <url>
-         <loc>https://proxy.idum.app/ai/open_ai/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/blog/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/examples/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/examples/simple/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/protocols/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/performance/circuit-breaker/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/performance/compression/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/performance/resource-filter/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/performance/caching/in-file/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/performance/caching/in-memory/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/security/bot-filter/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/security/ip-filter/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/transformer/request-transform/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/middlewares/transformer/response-transform/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/upstream/cache/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/upstream/echo/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/upstream/mock/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/features/upstream/proxy/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/get-started/concept/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/registry/docker/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/registry/maven/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/registry/npm/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/registry/nuget/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
     <url>
          <loc>https://proxy.idum.app/registry/pypi/</loc>
-         <lastmod>2025-05-29</lastmod>
+         <lastmod>2025-05-30</lastmod>
     </url>
 </urlset>
