@@ -1,11 +1,20 @@
-# Idum-Proxy
+<h1 align="center">
+  <a href="https://github.com/idumhq/idum-proxy">
+    <img src="https://raw.githubusercontent.com/idumhq/idum-proxy/refs/heads/main/docs/docs/assets/logo.png" alt="Master">
+  </a>
+<br>
+</h1>
+<h1 align="center">
+IDUM-PROXY
+</h1>
 
-Idum-Proxy is the easiest and quickest way to deploy a web proxy. 
-Free and open-source.
 
+<p align="center"><i>Idum-Proxy is the easiest and quickest way to deploy a web proxy.</i></p>
+
+****
 
 <!-- Project Status Badges -->
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-BSL-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.13%2B-blue.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
@@ -32,12 +41,13 @@ Free and open-source.
 ![GitHub forks](https://img.shields.io/github/forks/idumhq/idum-proxy?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/idumhq/idum-proxy?style=social)
  -->
-<!-- Custom Style Badges -->
+<!-- Custom Style Badges 
 ![Proxy](https://img.shields.io/badge/🌐_Proxy-Server-4F46E5?style=for-the-badge)
 ![Performance](https://img.shields.io/badge/⚡_High-Performance-10B981?style=for-the-badge)
 ![Security](https://img.shields.io/badge/🔒_Secure-Authentication-DC2626?style=for-the-badge)
+-->
 
-
+****
 
 ## ✨ Features
 

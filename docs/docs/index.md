@@ -1,71 +1,16 @@
 # Welcome to Idum-Proxy
 
-Idum Proxy is a lightweight reverse proxy with main features :
 
-- Protocol Support: Handle HTTP, HTTPS, WebSockets, TCP/UDP, and SOCKS proxies
-- Authentication: Support for various auth methods (Basic, Digest, NTLM, Kerberos)
-- Connection Pooling: Efficient reuse of connections to improve performance
-- Load Balancing: Distribute traffic across multiple proxies using algorithms like round-robin, least connections
-- Health Checking: Automatic detection and recovery from failed proxies
-- Caching: Store and reuse responses for identical requests
-- Retry Mechanisms: Automatically retry failed requests with configurable backoff
-- Circuit Breaking: Prevent cascading failures by detecting and isolating problematic services
-- Metrics Collection: Track proxy performance, latency, error rates
-- TLS/SSL Termination: Handle encryption/decryption to reduce backend load
-- IP Rotation: Change public IP addresses for scraping or anonymity
-- Geo-targeting: Route requests through proxies in specific geographic locations
+With Idum-Proxy, you can proxify backends api for simple adding new features of backend api.
 
-## Idum-Proxy for python developers
 
-### Install the package
+By example with the api of github, a new url `/proxy/github-api` is configured to call the api github and to save the result in a cache.
+The next calls read the data in the cache and don't call the
+```mermaid
+graph LR
+    Client[Client] -->|HTTPS<br/>/proxy/github-api| IdumProxy[idum-proxy] -->|HTTPS<br/>api.github.com| GitHubAPI[GitHub API]
 
-=== "Installing with uv"
-    ```bash
-    uv add idum_proxy
-    ```
-
-=== "Installing with pip"
-    ```bash
-    pip install idum_proxy
-    ```
-
-### Simple example
-
-proxy.json
-```json
-{
-  "version": "1.0",
-  "name": "Simple example",
-  "endpoints": [
-    {
-      "prefix": "/",
-      "match": "**/*",
-      "backends": {
-        "https": {
-          "url": "https://sandbox.api.service.nhs.uk/hello-world/hello/world$"
-        }
-      },
-      "upstream": {
-        "proxy": {
-          "enabled": true
-        }
-      }
-    }
-  ]
-}
+    style Client fill:#f3e5f5,stroke:#4a148c
+    style IdumProxy fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    style GitHubAPI fill:#e8f5e8,stroke:#1b5e20
 ```
-
-main.py
-```python
-from idum_proxy import IdumProxy
-proxy:IdumProxy = IdumProxy(config_file='proxy.json')
-proxy.serve(host='0.0.0.0', port=8091)
-```
-
-And open a browser to go to the url http://0.0.0.0:8091
-or use the curl command in a terminal:
-```bash
-curl -X GET http://0.0.0.0:8091
-```
-
-Well done! you are ready to use Idum Proxy

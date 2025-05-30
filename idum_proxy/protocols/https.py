@@ -6,8 +6,7 @@ import asyncio
 from typing import Any
 
 from aiohttp import ClientSession
-from starlette.responses import JSONResponse, Response, StreamingResponse
-import json
+from starlette.responses import JSONResponse, Response
 
 
 class HTTPS:
@@ -56,7 +55,6 @@ class HTTPS:
             Dictionary containing response data, status and headers
         """
         try:
-            # async with self.client_session as session:
             async with self.client_session.request(
                 method=method,
                 url=url,
@@ -73,24 +71,21 @@ class HTTPS:
                     return Response(status_code=HTTPStatus.NO_CONTENT.value)
 
                 elif "application/json" in response.headers["Content-Type"]:
-                    content = await response.text()
+                    content = await response.json()
                     _headers = response.headers.copy()
 
                     if "Content-Length" in _headers:
                         del _headers["Content-Length"]
 
                     return JSONResponse(
-                        content=json.loads(content),
+                        content=content,
                         status_code=response.status,
                         media_type="application/json",
-                        # headers=_headers,
+                        # headers=response.headers,
                     )
 
                 elif "text/" in response.headers["Content-Type"]:
                     content = await response.text()
-                    """content = content.replace(
-                            backend.url, f"{LINKS_HOST}/{endpoint.prefix}"
-                        )"""
                     _headers = response.headers.copy()
 
                     if "Content-Length" in _headers:
@@ -100,7 +95,7 @@ class HTTPS:
                         content=content,
                         status_code=response.status,
                         media_type=response.headers["Content-Type"],
-                        # headers=_headers,
+                        # headers=response.headers,
                     )
 
                 elif "application/" in response.headers["Content-Type"]:
@@ -122,9 +117,8 @@ class HTTPS:
                         content=content,
                         status_code=response.status,
                         media_type=response.headers.get("Content-Type"),
-                        headers=headers,
+                        headers=response.headers,
                     )
-
 
                 return Response(status_code=HTTPStatus.NO_CONTENT.value)
 

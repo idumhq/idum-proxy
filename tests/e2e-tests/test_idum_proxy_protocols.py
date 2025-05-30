@@ -1,12 +1,3 @@
-import ssl
-from http import HTTPStatus
-
-import pytest
-import certifi
-import socket
-
-from idum_proxy import IdumProxy
-
 """
     documentation: https://tcpbin.com/
 

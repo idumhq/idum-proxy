@@ -3,7 +3,7 @@ import io
 import tempfile
 import pytest
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch
 
 from starlette.responses import Response, StreamingResponse
 
@@ -78,7 +78,9 @@ class TestDownloadTextFile:
 
         assert isinstance(response, StreamingResponse)
         assert response.media_type == "text/plain; charset=utf-8"
-        assert response.headers["Content-Disposition"] == 'attachment; filename="test.txt"'
+        assert (
+            response.headers["Content-Disposition"] == 'attachment; filename="test.txt"'
+        )
 
         # Collect all chunks from the streaming response
         chunks = []
@@ -101,7 +103,10 @@ class TestDownloadTextFile:
 
         assert isinstance(response, StreamingResponse)
         assert response.media_type == "text/plain; charset=utf-8"
-        assert response.headers["Content-Disposition"] == 'attachment; filename="large_test.txt"'
+        assert (
+            response.headers["Content-Disposition"]
+            == 'attachment; filename="large_test.txt"'
+        )
 
         # Collect all chunks from the streaming response
         chunks = []
@@ -145,7 +150,10 @@ class TestDownloadTextFile:
 
         assert isinstance(response, StreamingResponse)
         assert response.media_type == "text/plain; charset=utf-8"
-        assert response.headers["Content-Disposition"] == 'attachment; filename="empty.txt"'
+        assert (
+            response.headers["Content-Disposition"]
+            == 'attachment; filename="empty.txt"'
+        )
 
         # Collect all chunks (should be empty)
         chunks = []
@@ -164,7 +172,9 @@ class TestDownloadTextFile:
         response = await download_text_file(test_file)
 
         assert isinstance(response, StreamingResponse)
-        expected_filename = 'attachment; filename="file with spaces & special chars.txt"'
+        expected_filename = (
+            'attachment; filename="file with spaces & special chars.txt"'
+        )
         assert response.headers["Content-Disposition"] == expected_filename
 
     @pytest.mark.asyncio
@@ -265,7 +275,9 @@ class TestDownloadTextFile:
         assert isinstance(response, StreamingResponse)
         assert response.media_type == "text/plain; charset=utf-8"
         assert "Content-Disposition" in response.headers
-        assert response.headers["Content-Disposition"].startswith("attachment; filename=")
+        assert response.headers["Content-Disposition"].startswith(
+            "attachment; filename="
+        )
         assert "headers_test.txt" in response.headers["Content-Disposition"]
 
     @pytest.mark.asyncio
@@ -326,7 +338,9 @@ class TestDownloadTextFile:
         responses = await asyncio.gather(*tasks)
 
         # Verify all responses
-        for i, (response, (_, expected_content)) in enumerate(zip(responses, files_and_content)):
+        for i, (response, (_, expected_content)) in enumerate(
+            zip(responses, files_and_content)
+        ):
             assert isinstance(response, StreamingResponse)
 
             chunks = []

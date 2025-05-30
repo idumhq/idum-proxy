@@ -19,4 +19,3 @@ async def download_text_file(path: Path):
         media_type="text/plain; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{path.name}"'},
     )
-

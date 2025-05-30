@@ -50,7 +50,7 @@ class ResponseTransformerMiddleware:
                 ):
                     to_replace = endpoint.transformers.response.textReplacements
                     for textReplacement in to_replace:
-                        new_value = textReplacement.newvalue.replace('${path}', path)
+                        new_value = textReplacement.newvalue.replace("${path}", path)
                         message["body"] = text_content.replace(
                             textReplacement.oldvalue, new_value
                         ).encode()
