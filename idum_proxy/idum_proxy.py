@@ -1,12 +1,12 @@
 import logging
-
+from idum_proxy import __version__
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket
 
-from idum_proxy.config.models import Endpoint
+from idum_proxy.config.models import Endpoint, Config
 from idum_proxy.middlewares.content_length_middleware import ContentLengthMiddleware
 import asyncio
 import gunicorn.app.base
@@ -54,6 +54,7 @@ from idum_proxy.upstreams.backends.http.https import Https
 from idum_proxy.upstreams.backends.http.mock import Mock
 from idum_proxy.upstreams.backends.http.redirect import Redirect
 from idum_proxy.upstreams.backends.system.scheduler import Scheduler, SchedulerService
+from idum_proxy.utils.utils import check_path
 
 
 class ProxyHandlerFactory:
@@ -89,6 +90,11 @@ async def handle_request(
     method = request.method
     headers = dict(request.headers)
     headers.pop("host", None)
+    headers.pop("content-length", None)
+    headers.pop("accept-encoding", None)
+    headers.pop("user-agent", None)
+
+    headers["user-agent"] = f"python-idum-proxy/{__version__}"
 
     # headers["content-type"] = "application/json"
     try:
@@ -204,10 +210,11 @@ async def websocket_proxy(websocket: WebSocket, channel: str):
 
 
 class IdumProxy:
-    def __init__(self, config_file: str | None = None):
+    def __init__(self, config_file: str | None = None, config: Config | None = None):
+        self.app = None
         self.proxy_baseurl = "http://127.0.0.1:8091"
 
-        self.config = get_file_config(config_file)
+        self.config = get_file_config(config_file) if config_file else config
         self.routing_selector = RoutingSelector(self.config)
         self.connection_pooling = ConnectionPooling()
 
@@ -244,7 +251,7 @@ class IdumProxy:
             return await handle_request(
                 self.routing_selector,
                 self.config,
-                app,
+                self.app,
                 request,
                 self.connection_pooling,
             )
@@ -254,22 +261,47 @@ class IdumProxy:
 
             # backends
             # app.add_middleware(CircuitBreakingMiddleware, idum_proxy=idum_proxy)  # type: ignore
-            app.add_middleware(ContentLengthMiddleware)  # type: ignore
+            self.app.add_middleware(ContentLengthMiddleware)  # type: ignore
 
-            app.add_middleware(InMemoryCacheMiddleware, config=self.config)  # type: ignore
-            app.add_middleware(InFileCacheMiddleware, config=self.config)  # type: ignore
+            if (
+                check_path(self.config, "middlewares.performance.cache.memory.enabled")
+                and self.config.middlewares.performance.cache.memory.enabled is True
+            ):
+                self.app.add_middleware(InMemoryCacheMiddleware, config=self.config)  # type: ignore
 
-            app.add_middleware(BotFilterMiddleware, config=self.config)  # type: ignore
-            app.add_middleware(IpFilterMiddleware, config=self.config)  # type: ignore
-            app.add_middleware(ResourceFilterMiddleware, config=self.config)  # type: ignore
+            if (
+                check_path(self.config, "middlewares.performance.cache.file.enabled")
+                and self.config.middlewares.performance.cache.file.enabled is True
+            ):
+                self.app.add_middleware(InFileCacheMiddleware, config=self.config)  # type: ignore
 
-            app.add_middleware(
+            if (
+                check_path(self.config, "middlewares.security.bot_filter.enabled")
+                and self.config.middlewares.security.bot_filter.enabled is True
+            ):
+                self.app.add_middleware(BotFilterMiddleware, config=self.config)  # type: ignore
+
+            if (
+                check_path(self.config, "middlewares.security.ip_filter.enabled")
+                and self.config.middlewares.security.ip_filter.enabled is True
+            ):
+                self.app.add_middleware(IpFilterMiddleware, config=self.config)  # type: ignore
+
+            if (
+                check_path(
+                    self.config, "middlewares.performance.resource_filter.enabled"
+                )
+                and self.config.middlewares.performance.resource_filter.enabled is True
+            ):
+                self.app.add_middleware(ResourceFilterMiddleware, config=self.config)  # type: ignore
+
+            self.app.add_middleware(
                 CompressionMiddleware,
                 config=self.config,  # type: ignore
                 routing_selector=self.routing_selector,
             )  # type: ignore
 
-            app.add_middleware(
+            self.app.add_middleware(
                 ResponseTransformerMiddleware, routing_selector=self.routing_selector
             )  # type: ignore
 
@@ -279,7 +311,7 @@ class IdumProxy:
             # app.add_middleware(MetricsMiddleware)  # type: ignore
             # app.add_route("/metrics", metrics)
 
-            app.user_middleware.reverse()
+            self.app.user_middleware.reverse()
 
         async def startup() -> None:
             """Application startup event"""
@@ -326,35 +358,51 @@ class IdumProxy:
             WebSocketRoute("/ws/{channel}", websocket_proxy),
         ]
 
-        app = Starlette(
+        self.app = Starlette(
             routes=routes, on_startup=[startup]
         )  # ,) on_shutdown=[shutdown])
         configure_middlewares()
 
-        class StandaloneApplication(gunicorn.app.base.BaseApplication):
-            def __init__(self, app, options=None):
-                self.options = options or {}
-                self.application = app
-                super().__init__()
+        DEFAULT_SERVER = "gunicorn"
+        DEFAULT_NB_WORKERS = 5
 
-            def load_config(self):
-                for key, value in self.options.items():
-                    self.cfg.set(key.lower(), value)
+        server = DEFAULT_SERVER
+        nb_workers = DEFAULT_NB_WORKERS
 
-            def load(self):
-                return self.application
+        if check_path(self.config, "server.type"):
+            server = self.config.server.type
 
-        options = {
-            "bind": f"{host}:{port}",
-            "workers": 5,
-            "worker_class": "uvicorn.workers.UvicornWorker",
-        }
+        if server == "local":
+            return
 
-        import uvicorn
+        if server == "gunicorn":
+            if check_path(self.config, "server.workers"):
+                nb_workers = self.config.server.workers
 
-        #uvicorn.run(app, host=host, port=port)
+            class StandaloneApplication(gunicorn.app.base.BaseApplication):
+                def __init__(self, app, options=None):
+                    self.options = options or {}
+                    self.application = app
+                    super().__init__()
 
-        StandaloneApplication(app, options).run()
+                def load_config(self):
+                    for key, value in self.options.items():
+                        self.cfg.set(key.lower(), value)
+
+                def load(self):
+                    return self.application
+
+            options = {
+                "bind": f"{host}:{port}",
+                "workers": nb_workers,
+                "worker_class": "uvicorn.workers.UvicornWorker",
+            }
+            StandaloneApplication(self.app, options).run()
+        else:
+            import uvicorn
+
+            uvicorn.run(self.app, host=host, port=port)
+
 
 if __name__ == "__main__":
     idum_proxy: IdumProxy = IdumProxy(config_file="idum_proxy/default.json")
