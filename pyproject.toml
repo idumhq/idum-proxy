@@ -16,6 +16,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "python-jose>=3.4.0",
     "starlette>=0.46.2",
+    "structlog>=25.3.0",
     "uvicorn>=0.34.2",
 ]
 
