@@ -1,0 +1,42 @@
+name: Test latest release installation
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Use uv with Python version
+        run: uv venv --python 3.13
+
+      - name: Create directory
+        run: mkdir test
+
+      - name: Init project
+        run: uv init
+        working-directory: test
+
+      - name: Add the dependency
+        run: uv add idum_proxy
+        working-directory: test
+
+      - name: Add the dependency
+        run: timeout 15 uv run python -m idum_proxy.idum_proxy
+        working-directory: test
+

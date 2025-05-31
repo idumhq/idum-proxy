@@ -429,8 +429,7 @@ class Endpoint:
     timeout: float = 30
 
 
-@dataclass(slots=True)
-class ServerConfig:
+class ServerConfig(BaseModel):
     type: Literal["uvicorn", "gunicorn", "local"] = "gunicorn"
     workers: int = Field(default=2, ge=1)
 
