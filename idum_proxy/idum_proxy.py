@@ -359,9 +359,11 @@ class IdumProxy:
 
         @contextlib.asynccontextmanager
         async def lifespan(app):
-            print("Run at startup!")
+            # Startup
+            print("Application starting...")
             yield
-            print("Run on shutdown!")
+            # Shutdown
+            print("Application shutting down...")
 
         self.app = Starlette(
             routes=routes, lifespan=lifespan

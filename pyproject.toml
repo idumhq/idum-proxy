@@ -12,6 +12,7 @@ dependencies = [
     "antpathmatcher>=1.0.0",
     "apscheduler>=3.11.0",
     "gunicorn>=23.0.0",
+    "httpx>=0.28.1",
     "pydantic>=2.11.4",
     "python-jose>=3.4.0",
     "starlette>=0.46.2",
@@ -57,7 +58,6 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = [
     "certifi>=2025.4.26",
-    "httpx>=0.28.1",
     "pip>=24.2",
     "pytest-asyncio>=0.24.0",
     "pytest-mock>=3.14.0",

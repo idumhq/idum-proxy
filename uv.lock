@@ -295,6 +295,7 @@ dependencies = [
     { name = "antpathmatcher" },
     { name = "apscheduler" },
     { name = "gunicorn" },
+    { name = "httpx" },
     { name = "pydantic" },
     { name = "python-jose" },
     { name = "starlette" },
@@ -304,7 +305,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "certifi" },
-    { name = "httpx" },
     { name = "pip" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -320,6 +320,7 @@ requires-dist = [
     { name = "antpathmatcher", specifier = ">=1.0.0" },
     { name = "apscheduler", specifier = ">=3.11.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "python-jose", specifier = ">=3.4.0" },
     { name = "starlette", specifier = ">=0.46.2" },
@@ -329,7 +330,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "certifi", specifier = ">=2025.4.26" },
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pip", specifier = ">=24.2" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
