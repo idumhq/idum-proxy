@@ -18,6 +18,7 @@ class ConnectionPoolingSession:
         self.request_count = 0
         self._connection_map = {}
         self.timeout = timeout
+        self.tcp_connector = None
 
     async def _on_request_start(self, session, context, params):
         request_id = str(uuid.uuid4())[:8]
@@ -76,7 +77,7 @@ class ConnectionPoolingSession:
         if self._session is None:
             async with self._session_lock:
                 if self._session is None:
-                    tcp_connector = aiohttp.TCPConnector(
+                    self.tcp_connector = aiohttp.TCPConnector(
                         ssl=True, keepalive_timeout=75, limit=10
                     )
                     trace_config = aiohttp.TraceConfig()
@@ -93,7 +94,7 @@ class ConnectionPoolingSession:
                     )
 
                     self._session = aiohttp.ClientSession(
-                        connector=tcp_connector,
+                        connector=self.tcp_connector,
                         trace_configs=[trace_config],
                         timeout=ClientTimeout(total=5, sock_connect=30),
                     )
@@ -111,6 +112,9 @@ class ConnectionPoolingSession:
         if self._session is not None:
             await self._session.close()
             self._session = None
+        if self.tcp_connector is not None:
+            await self.tcp_connector.close()
+            self.tcp_connector = None
 
 
 class ConnectionPooling:

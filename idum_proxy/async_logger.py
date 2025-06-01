@@ -1,69 +1,89 @@
 import sys
 import logging
-import queue
-from logging.handlers import QueueHandler, QueueListener
+import structlog
+from structlog.stdlib import LoggerFactory
 
-# Configure the root logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-# Create console handler and set level to debug
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.INFO)
+def configure_structlog():
+    """Configure structlog with proper processors and formatting."""
 
-# Create formatter
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # Configure stdlib logging first
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout,
+        level=logging.INFO,
+    )
 
-# Add formatter to ch
-ch.setFormatter(formatter)
-
-# Add ch to logger
-logger.addHandler(ch)
+    # Configure structlog
+    structlog.configure(
+        processors=[
+            # Add context from structlog
+            structlog.contextvars.merge_contextvars,
+            # Add timestamp
+            structlog.processors.TimeStamper(fmt="ISO"),
+            # Add log level
+            structlog.stdlib.add_log_level,
+            # Add logger name
+            structlog.stdlib.add_logger_name,
+            # Format for console output
+            structlog.dev.ConsoleRenderer(colors=True),
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
 
 
 class AsyncLogger:
-    def __init__(self):
-        # Create a queue for log messages
-        self.log_queue = queue.Queue()
+    """Async-friendly structured logger using structlog."""
 
-        # Create a QueueHandler that puts log records in the queue
-        queue_handler = QueueHandler(self.log_queue)
+    def __init__(self, name: str | None = None):
+        # Configure structlog if not already done
+        if not structlog.is_configured():
+            configure_structlog()
 
-        # Create a separate logger for the queue handler
-        self.queue_logger = logging.getLogger(f"{__name__}.queue")
-        self.queue_logger.setLevel(logging.DEBUG)
-        self.queue_logger.addHandler(queue_handler)
+        # Create the logger
+        self.logger = structlog.get_logger(name or __name__)
 
-        # Create a QueueListener that processes records from the queue
-        self.queue_listener = QueueListener(
-            self.log_queue, ch, respect_handler_level=True
-        )
+    async def log(self, level: str, message: str, **kwargs):
+        """Log a message at the specified level with optional context."""
+        log_method = getattr(self.logger, level.lower())
+        log_method(message, **kwargs)
 
-        # Start the listener in a separate thread
-        self.queue_listener.start()
+    async def info(self, message: str, **kwargs):
+        """Log an info message."""
+        self.logger.info(message, **kwargs)
 
-    async def log(self, level, message):
-        # This is non-blocking since QueueHandler.emit just puts
-        # the record in the queue and returns immediately
-        self.queue_logger.log(level, message)
-        # logger.log(level, message)
+    async def error(self, message: str, **kwargs):
+        """Log an error message."""
+        self.logger.error(message, **kwargs)
 
-    async def info(self, message):
-        await self.log(logging.INFO, message)
+    async def debug(self, message: str, **kwargs):
+        """Log a debug message."""
+        self.logger.debug(message, **kwargs)
 
-    async def error(self, message):
-        await self.log(logging.ERROR, message)
+    async def warning(self, message: str, **kwargs):
+        """Log a warning message."""
+        self.logger.warning(message, **kwargs)
 
-    async def debug(self, message):
-        await self.log(logging.DEBUG, message)
+    async def exception(self, message: str, exc_info: bool = True, **kwargs):
+        """Log an exception with traceback."""
+        self.logger.exception(message, exc_info=exc_info, **kwargs)
 
-    async def exception(self, ex):
-        await self.log(logging.ERROR, ex)
+    def bind(self, **kwargs):
+        """Bind context to the logger that will be included in all subsequent logs."""
+        bound_logger = self.logger.bind(**kwargs)
+        new_instance = AsyncLogger()
+        new_instance.logger = bound_logger
+        return new_instance
 
     def close(self):
-        # Stop the queue listener thread
-        self.queue_listener.stop()
+        """Close method for compatibility - structlog doesn't require explicit cleanup."""
+        pass
 
+
+# Initialize structlog configuration
+configure_structlog()
 
 # Create an async logger instance
 async_logger = AsyncLogger()

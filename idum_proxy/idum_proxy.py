@@ -1,11 +1,12 @@
 import contextlib
+from pathlib import Path
+
 from idum_proxy import __version__
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket
-
 from idum_proxy.config.models import Endpoint, Config
 from idum_proxy.middlewares.content_length_middleware import ContentLengthMiddleware
 import asyncio
@@ -215,6 +216,26 @@ class IdumProxy:
         self.proxy_baseurl = "http://127.0.0.1:8091"
 
         self.config = get_file_config(config_file) if config_file else config
+        if not self.config:
+            self.config = Config(
+                **{
+                    "version": "1.0",
+                    "name": "Default config",
+                    "endpoints": [
+                        {
+                            "prefix": "/",
+                            "match": "**/*",
+                            "backends": {
+                                "https": {
+                                    "url": "https://jsonplaceholder.typicode.com/posts"
+                                }
+                            },
+                            "upstream": {"proxy": {"enabled": True}},
+                        }
+                    ],
+                }
+            )
+
         self.routing_selector = RoutingSelector(self.config)
         self.connection_pooling = ConnectionPooling()
 
@@ -222,6 +243,22 @@ class IdumProxy:
             self.connection_pooling.append_new_client_session(
                 key=endpoint.prefix, timeout=endpoint.timeout
             )
+
+    def __del__(self):
+        if hasattr(self, "connection_pooling") and hasattr(
+            self.connection_pooling, "close"
+        ):
+            try:
+                loop = asyncio.get_running_loop()
+                # Create task and let it run
+                asyncio.run_coroutine_threadsafe(self.connection_pooling.close(), loop)
+            except RuntimeError:
+                # No event loop running, try to run synchronously
+                try:
+                    asyncio.run(self.connection_pooling.close())
+                except Exception:
+                    # Silently ignore cleanup errors during shutdown
+                    pass
 
     """
     @contextlib.asynccontextmanager
@@ -412,5 +449,8 @@ class IdumProxy:
 
 
 if __name__ == "__main__":
-    idum_proxy: IdumProxy = IdumProxy(config_file="idum_proxy/default.json")
+    source_dir = Path(__file__).parent
+    config_path = source_dir / "default.json"
+
+    idum_proxy: IdumProxy = IdumProxy(config_file=config_path.as_posix())
     idum_proxy.serve()
