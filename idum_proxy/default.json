@@ -4,18 +4,18 @@
   "timeout": "10",
   "ssl": true,
   "server": {
-    "type": "uvicorn"
+    "type": "hypercorn"
   },
   "middlewares": {
     "security": {
       "ip_filter": {
-        "enabled": true,
+        "enabled": false,
         "blacklist": [
           "*.0.0.2"
         ]
       },
       "bot_filter": {
-        "enabled": true,
+        "enabled": false,
         "blacklist": [
           {
             "name": "googlebot",
@@ -459,6 +459,26 @@
         "proxy": {
           "enabled": true,
           "timeout_seconds": 120
+        }
+      }
+    },
+    {
+      "identifier": "httpbun",
+      "prefix": "/httpbun",
+      "match": "/httpbun/**",
+      "backends": [
+        {
+          "https": {
+            "id": "primary",
+            "url": "https://httpbun.com",
+            "ssl": true,
+            "mode": "stream"
+          }
+        }
+      ],
+      "upstream": {
+        "proxy": {
+          "enabled": true
         }
       }
     }

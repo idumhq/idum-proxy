@@ -172,3 +172,4 @@ tests/output/
 /.files/
 
 .DS_Store
+*.pem

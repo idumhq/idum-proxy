@@ -2,8 +2,10 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from antpathmatcher import AntPathMatcher
 
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class RequestTransformerMiddleware:
@@ -13,7 +15,7 @@ class RequestTransformerMiddleware:
         self.config = config
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        await async_logger.info("Call RequestTransformerMiddleware")
+        logger.info("Call RequestTransformerMiddleware")
 
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)

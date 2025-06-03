@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "name": "Simple example",
+  "ssl": true,
+  "server": {
+    "type": "hypercorn"
+  },
+  "endpoints": [
+    {
+      "prefix": "/",
+      "match": "**/*",
+      "backends": {
+        "command": {
+          "id": "docker",
+          "darwin": "container",
+          "default": "docker"
+        }
+      },
+      "upstream": {
+        "proxy": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}

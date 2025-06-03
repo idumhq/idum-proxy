@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import platform
 import pty
 import struct
 import os
@@ -10,7 +11,7 @@ from http import HTTPStatus
 import aiofiles
 from starlette.requests import Request
 from starlette.responses import StreamingResponse, JSONResponse, Response
-
+import json
 from idum_proxy.config.models import Endpoint, Backends
 
 
@@ -34,7 +35,20 @@ class Command:
             Response object containing command output and status
         """
         try:
-            command = self.backend.command.command
+            current_platform = platform.system().lower().replace(' ', '_')
+            if hasattr(self.backend.command, current_platform):
+                command = [getattr(self.backend.command, 'darwin', self.backend.command)]
+            else:
+                command = [self.backend.command.default]
+            body =(await request.body()).decode()
+
+            if body and '' != body:
+                json_body = json.loads(body)
+                if 'args' in json_body:
+                    args = json_body['args']
+                    command.extend(args)
+
+            command = ' '.join(command)
             logging.info(f"Executing command: {command}")
             env = os.environ.copy()
             env.update({"PYTHONUNBUFFERED": "1", "TERM": "xterm-256color"})
