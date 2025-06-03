@@ -3,9 +3,13 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
 from idum_proxy.networking.routing.routing_selector import RoutingSelector
+
+
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CompressionMiddleware:
@@ -22,7 +26,7 @@ class CompressionMiddleware:
             await self.app(scope, receive, send)
             return
 
-        await async_logger.info("Call CompressionMiddleware")
+        logger.info("Call CompressionMiddleware")
 
         request_headers = dict(scope.get("headers", []))
         accept_encoding = request_headers.get(b"accept-encoding", b"").decode()
@@ -48,7 +52,7 @@ class CompressionMiddleware:
             and config.middlewares.performance.compression
             and config.middlewares.performance.compression.enabled is True
         ):
-            await async_logger.info("Call GZipMiddleware")
+            logger.info("Call GZipMiddleware")
 
             minimum_size = config.middlewares.performance.compression.minimum_size
             compress_level = config.middlewares.performance.compression.compress_level
