@@ -430,7 +430,7 @@ class Endpoint:
 
 
 class ServerConfig(BaseModel):
-    type: Literal["uvicorn", "gunicorn", "local"] = "gunicorn"
+    type: Literal["uvicorn", "gunicorn", "local", "hypercorn"] = "gunicorn"
     workers: int = Field(default=2, ge=1)
 
 

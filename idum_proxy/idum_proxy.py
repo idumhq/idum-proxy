@@ -1,6 +1,7 @@
 import contextlib
 from pathlib import Path
 
+
 from idum_proxy import __version__
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -8,11 +9,10 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket
 from idum_proxy.config.models import Endpoint, Config
+from idum_proxy.logger import get_logger
 from idum_proxy.middlewares.content_length_middleware import ContentLengthMiddleware
 import asyncio
 import gunicorn.app.base
-from idum_proxy.async_logger import async_logger
-
 from idum_proxy.middlewares.performance.resource_filter import (
     ResourceFilterMiddleware,
 )
@@ -44,6 +44,8 @@ from idum_proxy.config.loader import get_file_config
 from idum_proxy.networking.connection_pooling.connection_pooling import (
     ConnectionPooling,
 )
+from idum_proxy.networking.connection_pooling.connectors.connector_sage_singleton import safe_singleton
+from idum_proxy.networking.connection_pooling.connectors.event_loop_connector_manager import event_loop_manager
 
 from idum_proxy.networking.routing.routing_selector import RoutingSelector
 import httpx
@@ -57,6 +59,7 @@ from idum_proxy.upstreams.backends.http.redirect import Redirect
 from idum_proxy.upstreams.backends.system.scheduler import Scheduler
 from idum_proxy.utils.utils import check_path
 
+logger = get_logger(__name__)
 
 class ProxyHandlerFactory:
     _handlers = {
@@ -116,7 +119,7 @@ async def handle_request(
                 if isinstance(endpoint.backends, list)
                 else endpoint.backends
             )
-            await async_logger.debug(f"{upstream=} - {backend=}")
+            logger.debug(f"{upstream=} - {backend=}")
 
             return await ProxyHandlerFactory.create_and_handle(
                 backend, endpoint, request, headers, connection_pooling
@@ -167,8 +170,8 @@ async def handle_request(
         )
 
     except Exception as e:
-        await async_logger.error(f"Error: {e}")
-        await async_logger.exception(e)
+        logger.error(f"Error: {e}")
+        logger.exception(e)
         if isinstance(e, asyncio.TimeoutError):
             return Response(
                 content="Request timed out",
@@ -238,7 +241,37 @@ class IdumProxy:
 
         self.routing_selector = RoutingSelector(self.config)
         self.connection_pooling = ConnectionPooling()
+        """
+        self.tcp_connector = aiohttp.TCPConnector(
+            limit=100,  # Total connection pool size
+            limit_per_host=30,  # Per-host connection limit
+            ttl_dns_cache=300,  # DNS cache TTL in seconds
+            use_dns_cache=True,
+            keepalive_timeout=30,  # Keep-alive timeout
+            enable_cleanup_closed=True,  # Clean up closed connections
+            force_close=False,  # Don't force close connections
+            ssl=ssl.create_default_context(),  # SSL context
+        )
 
+        self.timeout = ClientTimeout(total=60, connect=10, sock_read=15, sock_connect=10)
+
+        self.trace_handlers = TraceHandlers(
+            enable_logging=True,
+            log_level=logging.INFO,
+            logger_name="idum_proxy"
+        )
+        handlers = DefaultTraceHandlers(self.trace_handlers)
+
+        self.trace_config = TraceConfig()
+        self.trace_config.on_request_start.append(handlers.on_request_start)
+        self.trace_config.on_request_end.append(handlers.on_request_end)
+        self.trace_config.on_request_exception.append(handlers.on_request_exception)
+        self.trace_config.on_connection_create_start.append(handlers.on_connection_create_start)
+        self.trace_config.on_connection_create_end.append(handlers.on_connection_create_end)
+        self.trace_config.on_connection_reuseconn.append(handlers.on_connection_reuseconn)
+        self.trace_config.on_dns_resolvehost_start.append(handlers.on_dns_resolvehost_start)
+        self.trace_config.on_dns_resolvehost_end.append(handlers.on_dns_resolvehost_end)
+        """
         for endpoint in self.config.endpoints:
             self.connection_pooling.append_new_client_session(
                 key=endpoint.prefix, timeout=endpoint.timeout
@@ -378,6 +411,19 @@ class IdumProxy:
             await self.scheduler_service.start()
             logging.info("Application started with scheduler")
         """
+
+        @contextlib.asynccontextmanager
+        async def lifespan(app):
+            # Startup
+            print("Application starting...")
+
+            yield
+            # Shutdown
+            print("Application shutting down...")
+            # Cleanup (optional, but good practice)
+            await event_loop_manager.cleanup_all()
+            await safe_singleton.cleanup()
+
         routes = [
             Route("/health", health_check, methods=["GET"]),
             Route(
@@ -394,18 +440,10 @@ class IdumProxy:
             WebSocketRoute("/ws/{channel}", websocket_proxy),
         ]
 
-        @contextlib.asynccontextmanager
-        async def lifespan(app):
-            # Startup
-            print("Application starting...")
-            yield
-            # Shutdown
-            print("Application shutting down...")
-
         self.app = Starlette(
             routes=routes, lifespan=lifespan
         )  # ,) on_shutdown=[shutdown])
-        configure_middlewares()
+        # configure_middlewares()
 
         DEFAULT_SERVER = "gunicorn"
         DEFAULT_NB_WORKERS = 5
@@ -442,10 +480,28 @@ class IdumProxy:
                 "worker_class": "uvicorn.workers.UvicornWorker",
             }
             StandaloneApplication(self.app, options).run()
-        else:
+        elif server == "uvicorn":
+            logger.info("Start uvicorn server")
+
             import uvicorn
 
             uvicorn.run(self.app, host=host, port=port)
+        else:
+            logger.info("Start hypercorn server")
+            import asyncio
+            from hypercorn.config import Config
+            from hypercorn.asyncio import serve
+
+            config = Config()
+            config.bind = ["0.0.0.0:443"]
+            config.certfile = "fullchain.pem"
+            config.keyfile = "privkey.pem"
+            config.alpn_protocols = ["h2", "http/1.1"]  # Default priority
+            config.h2_max_concurrent_streams = 100  # Default is 100
+            config.h2_max_frame_size = 16384  # Default is 16KB
+
+            asyncio.run(serve(self.app, config))
+
 
 
 if __name__ == "__main__":

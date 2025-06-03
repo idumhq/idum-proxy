@@ -9,7 +9,7 @@ from aiohttp import ClientSession
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
 
-class HTTPS_curl_cffi:
+class HTTPS_aiohttp:
     """HTTP/HTTPS client for making asynchronous requests."""
 
     def __init__(

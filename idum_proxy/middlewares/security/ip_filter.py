@@ -5,9 +5,10 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 
 from antpathmatcher import AntPathMatcher
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+from idum_proxy.logger import get_logger
 
+logger = get_logger(__name__)
 
 class IpFilterMiddleware:
     def __init__(self, app: ASGIApp, config: Config) -> None:
@@ -16,7 +17,7 @@ class IpFilterMiddleware:
         self.config = config
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        await async_logger.info("Call IpFilterMiddleware")
+        logger.info("Call IpFilterMiddleware")
 
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)
@@ -37,7 +38,7 @@ class IpFilterMiddleware:
             if client_ip:
                 for blocking_ip in config.middlewares.security.ip_filter.blacklist:
                     if self.antpathmatcher.match(blocking_ip, client_ip):
-                        await async_logger.info(
+                        logger.info(
                             f"IpFilter - {blocking_ip=} {client_ip=}"
                         )
                         response = Response(
@@ -47,5 +48,5 @@ class IpFilterMiddleware:
                         await response(scope, receive, send)
                         return
             else:
-                await async_logger.warning(f"IpFilter - {client_ip=} is None")
+                logger.warning(f"IpFilter - {client_ip=} is None")
         await self.app(scope, receive, send)
