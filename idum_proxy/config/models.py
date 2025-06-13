@@ -328,8 +328,8 @@ class Bot(BaseModel):
 @dataclass(slots=True)
 class BotFilterMiddleware:
     blacklist: list[Bot]
+    whitelist: list[Bot]
     enabled: bool = True
-    whitelist: list[Any] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -430,7 +430,9 @@ class Endpoint:
 
 
 class ServerConfig(BaseModel):
-    type: Literal["uvicorn", "gunicorn", "local"] = "gunicorn"
+    type: Literal["uvicorn", "gunicorn", "local", "hypercorn", "granian", "robyn"] = (
+        "gunicorn"
+    )
     workers: int = Field(default=2, ge=1)
 
 

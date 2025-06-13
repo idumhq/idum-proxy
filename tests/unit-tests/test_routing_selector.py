@@ -1,11 +1,17 @@
+from pathlib import Path
+
 import pytest
 
 from idum_proxy import IdumProxy
 
+DEFAULT_CONFIG_FILE = (
+    Path(__file__).parent.parent.parent / "idum_proxy/default.json"
+).as_posix()
+
 
 @pytest.mark.asyncio
 async def test_routing_selector_valid():
-    idum_proxy = IdumProxy(config_file="idum_proxy/default.json")
+    idum_proxy = IdumProxy(config_file=DEFAULT_CONFIG_FILE)
 
     paths = [
         "/github-api",
@@ -25,7 +31,7 @@ async def test_routing_selector_valid():
 
 @pytest.mark.asyncio
 async def test_routing_selector_invalid():
-    idum_proxy = IdumProxy(config_file="idum_proxy/default.json")
+    idum_proxy = IdumProxy(config_file=DEFAULT_CONFIG_FILE)
 
     star_paths = ["", "/", "unknown"]
 

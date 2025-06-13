@@ -6,7 +6,9 @@ from aiohttp import ClientTimeout
 import time
 import uuid
 
-from idum_proxy.async_logger import async_logger
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ConnectionPoolingSession:
@@ -25,23 +27,19 @@ class ConnectionPoolingSession:
         context.request_id = request_id
         context.start_time = time.time()
         self.request_count += 1
-        await async_logger.info(
-            f"Request started: {request_id} - {params.method} {params.url}"
-        )
+        logger.info(f"Request started: {request_id} - {params.method} {params.url}")
 
     async def _on_request_end(self, session, context, params):
         duration = time.time() - context.start_time
-        await async_logger.info(
-            f"Request completed: {context.request_id} in {duration:.3f}s"
-        )
-        await async_logger.info(
+        logger.info(f"Request completed: {context.request_id} in {duration:.3f}s")
+        logger.info(
             f"Stats - Requests: {self.request_count}, "
             f"Connections created: {self.connection_create_count}, "
             f"Connections reused: {self.connection_reuse_count}"
         )
 
     async def _on_connection_create_start(self, session, context, params):
-        await async_logger.info(
+        logger.info(
             f"Creating new connection for request: {getattr(context, 'request_id', 'unknown')}"
         )
 
@@ -53,7 +51,7 @@ class ConnectionPoolingSession:
             "request_id": getattr(context, "request_id", "unknown"),
             "use_count": 1,
         }
-        await async_logger.info(
+        logger.info(
             f"New connection created: {conn_key} for request {getattr(context, 'request_id', 'unknown')}"
         )
 
@@ -64,12 +62,12 @@ class ConnectionPoolingSession:
             self._connection_map[conn_key]["use_count"] += 1
             age = time.time() - self._connection_map[conn_key]["created_at"]
             use_count = self._connection_map[conn_key]["use_count"]
-            await async_logger.info(
+            logger.info(
                 f"Connection reused: {conn_key} for request {getattr(context, 'request_id', 'unknown')} "
                 f"(use #{use_count}, age: {age:.1f}s, timeout: {self.timeout})"
             )
         else:
-            await async_logger.info(f"Reusing untracked connection: {conn_key}")
+            logger.info(f"Reusing untracked connection: {conn_key}")
 
     @asynccontextmanager
     async def get_session(self):
@@ -93,18 +91,41 @@ class ConnectionPoolingSession:
                         self._on_connection_reuse
                     )
 
+                    # the timeout of the session must be different if it's a chuncked or a standard http call
+                    # chuncked needs a long call
+
+                    """
+                    if is_streaming:
+                        # STREAMING: Longer timeouts for slow/large data transfers
+                        timeout = ClientTimeout(
+                            total=1800,  # 30 minutes - streaming can take a long time
+                            connect=30,  # 30 seconds - initial connection might be slow
+                            sock_read=120,  # 2 minutes - chunks can arrive slowly in streams
+                            sock_connect=15  # 15 seconds - socket connection
+                        )
+                    else:
+                    """
+
+                    # API: Shorter timeouts for fast responses
+                    timeout = ClientTimeout(
+                        total=60,  # 1 minute - APIs should respond quickly
+                        connect=10,  # 10 seconds - fast connection expected
+                        sock_read=15,  # 15 seconds - data should arrive quickly
+                        sock_connect=10,  # 10 seconds - socket connection
+                    )
+
                     self._session = aiohttp.ClientSession(
                         connector=self.tcp_connector,
                         trace_configs=[trace_config],
-                        timeout=ClientTimeout(total=5, sock_connect=30),
+                        timeout=timeout,
                     )
 
         try:
             yield self._session
         except Exception as e:
             # Handle any session-related errors
-            await async_logger.error(f"Session error: {e}")
-            await async_logger.exception(e)
+            logger.error(f"Session error: {e}")
+            logger.exception(e)
             raise
 
     async def close(self):

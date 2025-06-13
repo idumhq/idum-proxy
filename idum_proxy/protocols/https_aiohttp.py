@@ -6,10 +6,11 @@ import asyncio
 from typing import Any
 
 from aiohttp import ClientSession
-from starlette.responses import JSONResponse, Response
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response, StreamingResponse
 
 
-class HTTPS:
+class HTTPS_aiohttp:
     """HTTP/HTTPS client for making asynchronous requests."""
 
     def __init__(
@@ -18,6 +19,7 @@ class HTTPS:
         timeout: float = 30.0,
         proxy: Any | None = None,
         client_session: ClientSession | None = None,
+        request: Request | None = None,
     ):
         """Initialize the HTTPS client.
 
@@ -40,7 +42,7 @@ class HTTPS:
         data: any = None,
         json_data: any = None,
         params: dict | None = None,
-    ) -> Response:
+    ) -> StreamingResponse | Response:
         """Make an HTTP/HTTPS request.
 
         Args:
@@ -55,6 +57,7 @@ class HTTPS:
             Dictionary containing response data, status and headers
         """
         try:
+            # async with self.client_session.request(
             async with self.client_session.request(
                 method=method,
                 url=url,
@@ -63,7 +66,6 @@ class HTTPS:
                 data=data,
                 json=json_data,
                 params=params,
-                timeout=aiohttp.ClientTimeout(total=self.timeout),
                 proxy=self.proxy,
                 allow_redirects=True,
             ) as response:
