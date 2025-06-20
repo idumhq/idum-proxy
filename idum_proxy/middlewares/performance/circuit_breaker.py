@@ -7,8 +7,11 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from starlette.responses import Response
 
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CircuitBreakingMiddleware:
@@ -42,7 +45,7 @@ class CircuitBreakingMiddleware:
             await self.app(scope, receive, send)
             return
 
-        await async_logger.info("Call CircuitBreakingMiddleware")
+        logger.info("Call CircuitBreakingMiddleware")
 
         config = self.config
         path = scope["path"].lstrip("/")
@@ -71,7 +74,7 @@ class CircuitBreakingMiddleware:
                     self.antpathmatcher.match(skip_path, path)
                     for skip_path in skip_paths
                 ):
-                    await async_logger.debug(
+                    logger.debug(
                         f"Resource optimization: skipping processing for path: {path}"
                     )
                     response = Response(
@@ -85,7 +88,7 @@ class CircuitBreakingMiddleware:
                 self.antpathmatcher.match(exclude_path, path)
                 for exclude_path in self.exclude_paths
             ):
-                await async_logger.debug(
+                logger.debug(
                     f"Path {path} excluded from circuit breaking by middleware parameter"
                 )
                 await self.app(scope, receive, send)
@@ -93,7 +96,7 @@ class CircuitBreakingMiddleware:
 
             # Performance protection: Check if circuit breaker is triggered based on load metrics
             if self._is_circuit_open(path):
-                await async_logger.warning(
+                logger.warning(
                     f"Circuit breaker triggered for path: {path} - protecting system resources"
                 )
                 response = Response(
@@ -208,4 +211,4 @@ class CircuitBreakingMiddleware:
         self.failure_counts = {}
         self.response_times = {}
         self.last_reset_time = time.time()
-        await async_logger.debug("Circuit breaker counters reset")
+        logger.debug("Circuit breaker counters reset")

@@ -4,8 +4,11 @@ import asyncio
 from starlette.requests import Request
 from starlette.types import Scope, Receive, Send, ASGIApp
 
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class InMemoryCacheMiddleware:
@@ -59,7 +62,7 @@ class InMemoryCacheMiddleware:
                 for key in keys_to_remove:
                     del self.cache[key]
 
-                await async_logger.debug(
+                logger.debug(
                     f"Cache cleanup: removed {len(keys_to_remove)} expired items"
                 )
                 await asyncio.sleep(
@@ -68,7 +71,7 @@ class InMemoryCacheMiddleware:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                await async_logger.error(f"Error in cache cleanup: {e}")
+                logger.error(f"Error in cache cleanup: {e}")
                 await asyncio.sleep(30)  # Wait before retrying
 
     """
@@ -96,7 +99,7 @@ class InMemoryCacheMiddleware:
         return True
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        await async_logger.info("Call InMemoryCacheMiddleware")
+        logger.info("Call InMemoryCacheMiddleware")
 
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)

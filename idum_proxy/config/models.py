@@ -52,8 +52,37 @@ class TcpBackend:
 
 @dataclass(slots=True)
 class CommandBackend:
+    """
+        Most Common Values:
+
+        Linux - Linux distributions
+        Windows - Windows systems
+        Darwin - macOS/OS X (Darwin is the macOS kernel)
+        FreeBSD - FreeBSD systems
+        OpenBSD - OpenBSD systems
+        NetBSD - NetBSD systems
+        SunOS - Solaris systems
+        AIX - IBM AIX systems
+        Java - Jython (Python on JVM)
+
+        Windows Variants:
+
+        CYGWIN_NT - Windows with Cygwin
+        MSYS_NT - Windows with MSYS2
+    """
     id: str
-    command: str
+    default: str
+    linux:str | None = None
+    windows: str | None = None
+    darwin: str | None = None
+    freebsd: str | None = None
+    openbsd: str | None = None
+    netbsd: str | None = None
+    sunos: str | None = None
+    aix: str | None = None
+    cygwin_nt: str | None = None
+    msys_nt: str | None = None
+    java: str | None = None
 
 
 @dataclass(slots=True)
@@ -328,8 +357,8 @@ class Bot(BaseModel):
 @dataclass(slots=True)
 class BotFilterMiddleware:
     blacklist: list[Bot]
+    whitelist: list[Bot]
     enabled: bool = True
-    whitelist: list[Any] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -430,7 +459,9 @@ class Endpoint:
 
 
 class ServerConfig(BaseModel):
-    type: Literal["uvicorn", "gunicorn", "local"] = "gunicorn"
+    type: Literal["uvicorn", "gunicorn", "local", "hypercorn", "granian", "robyn"] = (
+        "gunicorn"
+    )
     workers: int = Field(default=2, ge=1)
 
 

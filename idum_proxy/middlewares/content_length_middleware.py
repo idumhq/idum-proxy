@@ -1,5 +1,9 @@
 from starlette.types import ASGIApp
 
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class ContentLengthMiddleware:
     """

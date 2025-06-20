@@ -12,8 +12,12 @@ import hashlib
 from antpathmatcher import AntPathMatcher
 from functools import lru_cache
 from base64 import b64encode, b64decode
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+
+
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class InFileCacheMiddleware:
@@ -94,7 +98,7 @@ class InFileCacheMiddleware:
                 self.cache_enabled = False
                 self.include_patterns = []
         except Exception as e:
-            await async_logger.error(f"Error loading cache config: {e}")
+            logger.error(f"Error loading cache config: {e}")
             self.cache_enabled = False
             self.include_patterns = []
 
@@ -135,7 +139,7 @@ class InFileCacheMiddleware:
         cache_file = self.cache_dir / cache_key
         cache_data = await self._get_cached_response(cache_file, cache_key)
         if cache_data:
-            await async_logger.info(f"File cache hit for {path}")
+            logger.info(f"File cache hit for {path}")
             self.hits += 1
             cache_data["content"] = b64decode(cache_data["content"])
             await self._send_cached_response(cache_data, send)
@@ -239,7 +243,7 @@ class InFileCacheMiddleware:
             return cache_data
 
         except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
-            await async_logger.debug(f"Cache read error: {e}")
+            logger.debug(f"Cache read error: {e}")
             return None
 
     async def _delete_file(self, file_path: Path) -> None:
@@ -249,7 +253,7 @@ class InFileCacheMiddleware:
             if await loop.run_in_executor(None, os.path.exists, file_path):
                 await loop.run_in_executor(None, os.remove, file_path)
         except Exception as e:
-            await async_logger.error(f"Error deleting file: {e}")
+            logger.error(f"Error deleting file: {e}")
 
     async def _send_cached_response(self, cache_data: dict, send: Send) -> None:
         """Send a cached response to the client."""
@@ -324,7 +328,7 @@ class InFileCacheMiddleware:
                 asyncio.create_task(self._maybe_cleanup_cache())
 
         except Exception as e:
-            await async_logger.error(f"Error caching response: {e}")
+            logger.error(f"Error caching response: {e}")
 
     async def _maybe_cleanup_cache(self) -> None:
         """Non-blocking check if cleanup is needed"""
@@ -342,7 +346,7 @@ class InFileCacheMiddleware:
                 # Need to clean up, but don't wait for it
                 asyncio.create_task(self._run_cleanup())
         except Exception as e:
-            await async_logger.error(f"Error checking cache size: {e}")
+            logger.error(f"Error checking cache size: {e}")
 
     async def _run_cleanup(self) -> None:
         """Run cache cleanup with a lock to prevent concurrent cleanup"""
@@ -365,7 +369,7 @@ class InFileCacheMiddleware:
                 # Then check disk cache (in background)
                 await self._cleanup_cache()
             except Exception as e:
-                await async_logger.error(f"Error in cleanup: {e}")
+                logger.error(f"Error in cleanup: {e}")
 
     async def _cleanup_loop(self) -> None:
         """Background task to periodically clean up expired items."""
@@ -374,18 +378,18 @@ class InFileCacheMiddleware:
                 await asyncio.sleep(self.cleanup_interval)
                 await self._run_cleanup()
                 # Log stats
-                await async_logger.info(
+                logger.info(
                     f"Cache stats: hits={self.hits}, memory_hits={self.memory_hits}, "
                     f"misses={self.misses}, cache_size={len(self.content_cache)}"
                 )
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                await async_logger.error(f"Error in cache cleanup loop: {e}")
+                logger.error(f"Error in cache cleanup loop: {e}")
 
     async def _cleanup_cache(self) -> None:
         """Clean up expired cache entries efficiently"""
-        await async_logger.info("Running cache cleanup")
+        logger.info("Running cache cleanup")
         loop = asyncio.get_event_loop()
 
         # Get all file info in one call using os.listdir (faster than glob)
@@ -459,24 +463,22 @@ class InFileCacheMiddleware:
                                             except ValueError:
                                                 pass
                                 except Exception as e:
-                                    await async_logger.exception(e)
+                                    logger.exception(e)
                                     # If reading fails, just delete the file
                                     await loop.run_in_executor(
                                         None, os.remove, file_path
                                     )
                                     files_removed += 1
                     except Exception as e:
-                        await async_logger.debug(
-                            f"Error checking cache file {filename}: {e}"
-                        )
+                        logger.debug(f"Error checking cache file {filename}: {e}")
 
                 # Yield after each batch
                 await asyncio.sleep(0)
 
-            await async_logger.info(f"Removed {files_removed} expired cache entries")
+            logger.info(f"Removed {files_removed} expired cache entries")
 
         except Exception as e:
-            await async_logger.error(f"Error during cache cleanup: {e}")
+            logger.error(f"Error during cache cleanup: {e}")
 
     async def get_stats(self) -> dict[str, Any]:
         """Get statistics about the cache."""
@@ -494,10 +496,10 @@ class InFileCacheMiddleware:
                         stat = await loop.run_in_executor(None, os.stat, file_path)
                         total_size += stat.st_size
                 except Exception as e:
-                    await async_logger.exception(e)
+                    logger.exception(e)
                     pass
         except Exception as e:
-            await async_logger.exception(e)
+            logger.exception(e)
 
             all_files = []
             total_size = 0

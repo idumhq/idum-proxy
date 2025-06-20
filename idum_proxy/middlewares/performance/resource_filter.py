@@ -5,8 +5,10 @@ from starlette.responses import Response
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 
-from idum_proxy.async_logger import async_logger
 from idum_proxy.config.models import Config
+from idum_proxy.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ResourceFilterMiddleware:
@@ -25,7 +27,7 @@ class ResourceFilterMiddleware:
             await self.app(scope, receive, send)
             return
 
-        await async_logger.info("Call ResourceFilterMiddleware")
+        logger.info("Call ResourceFilterMiddleware")
 
         config = self.config
 
@@ -39,7 +41,7 @@ class ResourceFilterMiddleware:
             and config.middlewares.performance.resource_filter.skip_paths
         ):
             for skip_path in config.middlewares.performance.resource_filter.skip_paths:
-                await async_logger.info(f"Call ResourceFilterMiddleware - {skip_path=}")
+                logger.info(f"Call ResourceFilterMiddleware - {skip_path=}")
 
                 if self.antpathmatcher.match(skip_path, scope["path"].lstrip("/")):
                     response = Response(
