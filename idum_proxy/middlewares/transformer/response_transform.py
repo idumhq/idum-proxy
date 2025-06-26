@@ -19,7 +19,7 @@ class ResponseTransformerMiddleware:
         self.routing_selector = routing_selector
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        logger.info("Call ResponseTransformerMiddleware")
+        logger.debug("Call ResponseTransformerMiddleware")
 
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)

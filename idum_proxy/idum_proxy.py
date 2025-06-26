@@ -541,8 +541,12 @@ class IdumProxy:
                 "bind": f"{host}:{port}",
                 "workers": nb_workers,
                 "worker_class": "uvicorn.workers.UvicornWorker",
-                "keyfile": Path(Path(__file__).parent.parent / "privkey.pem").as_posix(),
-                "certfile": Path(Path(__file__).parent.parent / "fullchain.pem").as_posix(),
+                "keyfile": Path(
+                    Path(__file__).parent.parent / "privkey.pem"
+                ).as_posix(),
+                "certfile": Path(
+                    Path(__file__).parent.parent / "fullchain.pem"
+                ).as_posix(),
                 "ssl_version": 3,  # TLS 1.2+
                 "ciphers": "TLSv1.2:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!SRP:!CAMELLIA",
             }
@@ -556,8 +560,12 @@ class IdumProxy:
                 self.app,
                 host=host,
                 port=port,
-                ssl_keyfile=Path(Path(__file__).parent.parent / "privkey.pem").as_posix(),
-                ssl_certfile=Path(Path(__file__).parent.parent / "fullchain.pem").as_posix(),
+                ssl_keyfile=Path(
+                    Path(__file__).parent.parent / "privkey.pem"
+                ).as_posix(),
+                ssl_certfile=Path(
+                    Path(__file__).parent.parent / "fullchain.pem"
+                ).as_posix(),
                 ssl_version=3,  # TLS 1.2+
                 ssl_ciphers="TLSv1.2:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!SRP:!CAMELLIA",
             )
@@ -569,8 +577,12 @@ class IdumProxy:
 
             config = HypercornConfig()
             config.bind = [f"{host}:{port}"]
-            config.certfile =Path(Path(__file__).parent.parent / "fullchain.pem").as_posix()
-            config.keyfile = Path(Path(__file__).parent.parent / "privkey.pem").as_posix()
+            config.certfile = Path(
+                Path(__file__).parent.parent / "fullchain.pem"
+            ).as_posix()
+            config.keyfile = Path(
+                Path(__file__).parent.parent / "privkey.pem"
+            ).as_posix()
             config.alpn_protocols = ["h2", "http/1.1"]  # Default priority
             config.h2_max_concurrent_streams = 100  # Default is 100
             config.h2_max_frame_size = 16384  # Default is 16KB
