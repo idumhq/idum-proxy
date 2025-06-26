@@ -26,7 +26,7 @@ class CompressionMiddleware:
             await self.app(scope, receive, send)
             return
 
-        logger.info("Call CompressionMiddleware")
+        logger.debug("Call CompressionMiddleware")
 
         request_headers = dict(scope.get("headers", []))
         accept_encoding = request_headers.get(b"accept-encoding", b"").decode()

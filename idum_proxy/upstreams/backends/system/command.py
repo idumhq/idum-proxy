@@ -35,20 +35,22 @@ class Command:
             Response object containing command output and status
         """
         try:
-            current_platform = platform.system().lower().replace(' ', '_')
+            current_platform = platform.system().lower().replace(" ", "_")
             if hasattr(self.backend.command, current_platform):
-                command = [getattr(self.backend.command, 'darwin', self.backend.command)]
+                command = [
+                    getattr(self.backend.command, "darwin", self.backend.command)
+                ]
             else:
                 command = [self.backend.command.default]
-            body =(await request.body()).decode()
+            body = (await request.body()).decode()
 
-            if body and '' != body:
+            if body and "" != body:
                 json_body = json.loads(body)
-                if 'args' in json_body:
-                    args = json_body['args']
+                if "args" in json_body:
+                    args = json_body["args"]
                     command.extend(args)
 
-            command = ' '.join(command)
+            command = " ".join(command)
             logging.info(f"Executing command: {command}")
             env = os.environ.copy()
             env.update({"PYTHONUNBUFFERED": "1", "TERM": "xterm-256color"})
@@ -97,6 +99,7 @@ class Command:
 
                         # Check if process is still running
                         if p1.returncode is not None:
+                            yield f"|EX|{p1.returncode}|"
                             break
 
                 """

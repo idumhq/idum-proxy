@@ -53,26 +53,27 @@ class TcpBackend:
 @dataclass(slots=True)
 class CommandBackend:
     """
-        Most Common Values:
+    Most Common Values:
 
-        Linux - Linux distributions
-        Windows - Windows systems
-        Darwin - macOS/OS X (Darwin is the macOS kernel)
-        FreeBSD - FreeBSD systems
-        OpenBSD - OpenBSD systems
-        NetBSD - NetBSD systems
-        SunOS - Solaris systems
-        AIX - IBM AIX systems
-        Java - Jython (Python on JVM)
+    Linux - Linux distributions
+    Windows - Windows systems
+    Darwin - macOS/OS X (Darwin is the macOS kernel)
+    FreeBSD - FreeBSD systems
+    OpenBSD - OpenBSD systems
+    NetBSD - NetBSD systems
+    SunOS - Solaris systems
+    AIX - IBM AIX systems
+    Java - Jython (Python on JVM)
 
-        Windows Variants:
+    Windows Variants:
 
-        CYGWIN_NT - Windows with Cygwin
-        MSYS_NT - Windows with MSYS2
+    CYGWIN_NT - Windows with Cygwin
+    MSYS_NT - Windows with MSYS2
     """
+
     id: str
     default: str
-    linux:str | None = None
+    linux: str | None = None
     windows: str | None = None
     darwin: str | None = None
     freebsd: str | None = None

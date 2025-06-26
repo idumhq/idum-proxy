@@ -1,8 +1,4 @@
-import threading
-import socket
-import time
 from idum_proxy import IdumProxy
-import logging
 
 if __name__ == "__main__":
     # Initialize the proxy
